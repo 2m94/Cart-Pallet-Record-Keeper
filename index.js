@@ -44,5 +44,57 @@ function updateCounters() {
     countEl10.innerText = count10;
 }
 
+// Function to render the bar chart
+function renderChart() {
+    const svgWidth = 800;
+    const svgHeight = 400;
+    const barPadding = 5;
+    const barWidth = (svgWidth / Object.keys(dailyCounts).length) - barPadding;
+
+    // Clear previous chart
+    d3.select("#chart").html("");
+
+    // Create SVG element
+    const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight);
+
+    // Calculate weekly averages
+    const weeklyAverages = Object.keys(dailyCounts).map(key => {
+        const total = dailyCounts[key].reduce((sum, val) => sum + val, 0);
+        return (total / dailyCounts[key].length) || 0; // Avoid division by zero
+    });
+
+    // Create bars
+    svg.selectAll("rect")
+        .data(weeklyAverages)
+        .enter()
+        .append("rect")
+        .attr("x", (d, i) => i * (barWidth + barPadding))
+        .attr("y", d => svgHeight - d * 10) // Scale the height for visibility
+        .attr("width", barWidth)
+        .attr("height", d => d * 10)
+        .attr("fill", "steelblue");
+
+    // Add labels
+    svg.selectAll("text")
+        .data(weeklyAverages)
+        .enter()
+        .append("text")
+        .text((d, i) => Object.keys(dailyCounts)[i])
+        .attr("x", (d, i) => i * (barWidth + barPadding) + barWidth / 2)
+        .attr("y", svgHeight - 5)
+        .attr("font-size", "12px")
+        .attr("fill", "black")
+        .attr("text-anchor", "middle");
+}
+
+// Call renderChart after saving daily counts
+document.getElementById("save-btn").addEventListener("click", () => {
+    saveDailyCounts();
+    renderChart();
+});
+
 // Call saveDailyCounts at the end of each day (you can trigger this manually or automatically)
 document.getElementById("save-btn").addEventListener("click", saveDailyCounts);
